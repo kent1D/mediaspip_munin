@@ -42,7 +42,6 @@ Il donne 5 informations pour chaque ferme analysées :
 
 ### Version 0.2 :
 - Refactoring pour que les scripts soient configurables
-- 
 
 ### Version 0.1 :
 - Version originale développée par [Infini - Eric Talarmain](http://www.infini.fr "Infini - Hébergeur associatif brestois")
