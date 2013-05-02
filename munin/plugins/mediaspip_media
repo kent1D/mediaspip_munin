@@ -1,121 +1,129 @@
 #!/bin/sh
 #
-: <<=cut
-
-=head1 NAME
-
-mediaspip_media - Nombre de media dans mediaspip
-
-=head1 APPLICABLE SYSTEMS
-
-Tout système linux
-
-=head1 CONFIGURATION
-
-Scripts dépendants :
-mediaspip_categorie ( interpréteur awk ) :
-Il récupère la liste des extensions et incrémente le nombre de média dans une catégorie parmi video audio photo documents
-Ce script peut être incomplet, veuillez vérifier que les extensions des media fréquemment utilisés sont dans la liste
-
-mediaspip_compter ( interpréteur bash )
-script exécuté par le cron
-Planifier l'exécution de /usr/local/bin/mediaspip_compter dans le cron
-
-mediaspip_compter_categorie_extension ( interpréteur bash )
-Script executé par ce script munin
-Récupère la liste des media, il compte le nombre de media par catégorie selon l'extension repéré
-
-mediaspip_extension ( interpréteur awk )
-Il retient l'extension du fichier ( après le dernier ".", tar.gz serait vu comme gz )
-
-Copier ces fichiers dans /usr/local/bin
-
-
-
-=head2 EXAMPLE WARNING AND CRITICAL SETTINGS
-
-=head1 INTERPRETATION
-
-Nombre de media dans mediaspip
-
-=head1 VERSION
-
-  $Id: mediaspip_media.in 3213 2009-12-10 13:31:49Z janl $
-
-=head1 BUGS
-
-Bugs ?
-
-=head1 AUTHOR
-
-Association INFINI - Eric Talarmain
-
-=head1 LICENSE
-
-GPLv2
-
-=cut
-
+# mediaspip_media
+# Nombre de media dans mediaspip
+#
+# Ce script est sensé être utilisé par Munin (http://munin-monitoring.org)
+# pour monitorer le nombre de medias publiés sur une ferme de MediaSPIP (http://www.mediaspip.net)
+# 
+# VERSION
+# v0.2 (2013-05-02)
+#
+# AUTHORS
+# © Association INFINI - Eric Talarmain (2011-xxxx)
+# © Association Arscenic - kent1 (kent1{at}arscenic.info 2013-xxxx)
+# Distribué sous licence GNU/GPLv2 (http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt)
+#
+# CONFIGURATION
+#
+#
+#%# family=contrib
+#%# capabilities=autoconf
 
 . $MUNIN_LIBDIR/plugins/plugin.sh
 
+DOSSIERS=${dossier:-/var/www/mediaspip/sites}
+
+#####
+# Autoconfiguration: 
+# - On vérifie que tous les dossiers fournis en configuration sont accessibles en lecture
+#####
 if [ "$1" = "autoconf" ]; then
-	if [ -r /var/www/mediaspip/sites ]; then
-		echo yes
-	else
-		echo no
-	fi
+	IFS=":"
+	set $DOSSIERS
+	i=0
+	for item
+	do
+		if [ ! -r $item ]; then
+			echo "no ($item n est pas accessible)"
+			exit 0
+		fi
+	done
+	echo yes
 	exit 0
 fi
 
 if [ "$1" = "config" ]; then
 	echo 'graph_title Media dans MediaSPIP'
 	echo 'graph_vlabel nb'
-	echo 'graph_info Ce graphe montre des statistiques sur l utilisation de mediaspip.'
-	echo 'graph_category mediaspip'
+	echo 'graph_info Statistiques d utilisation de MediaSPIP.'
+	echo 'graph_category SPIP'
 
-	echo 'media.label NbMedia'
-	echo 'media.type GAUGE'
-	echo 'media.draw LINE1'
-	echo 'media.info Nombre de media sur les sites MediaSPIP'
+	IFS=":"
+	set $DOSSIERS
+	i=0
+	for item
+	do
+		echo "media$i.label Medias (Total) $i"
+		echo "media$i.type GAUGE"
+		echo "media$i.draw LINE1"
+		echo "media$i.info Nombre de media sur les sites MediaSPIP ($item)"
 
-	echo 'video.label NbVideo'
-	echo 'video.type GAUGE'
-	echo 'video.draw LINE1'
-	echo 'video.info Nombre de video sur les sites MediaSPIP'
+		echo "video$i.label Videos $i"
+		echo "video$i.type GAUGE"
+		echo "video$i.draw LINE1"
+		echo "video$i.info Nombre de video sur les sites MediaSPIP ($item)"
 
-	echo 'audio.label NbAudio'
-	echo 'audio.type GAUGE'
-	echo 'audio.draw LINE1'
-	echo 'audio.info Nombre de documents audio sur les sites MediaSPIP'
+		echo "audio$i.label Audios $i"
+		echo "audio$i.type GAUGE"
+		echo "audio$i.draw LINE1"
+		echo "audio$i.info Nombre de documents audio sur les sites MediaSPIP ($item)"
 
-	echo 'photo.label NbPhoto'
-	echo 'photo.type GAUGE'
-	echo 'photo.draw LINE1'
-	echo 'photo.info Nombre d illustrations sur les sites MediaSPIP'
+		echo "photo$i.label Photos $i"
+		echo "photo$i.type GAUGE"
+		echo "photo$i.draw LINE1"
+		echo "photo$i.info Nombre d illustrations sur les sites MediaSPIP ($item)"
 
-	echo 'document.label NbDocuments'
-	echo 'document.type GAUGE'
-	echo 'document.draw LINE1'
-	echo 'document.info Nombre de documents textes illustres sur les sites MediaSPIP'
-
+		echo "document$i.label Documents $i"
+		echo "document$i.type GAUGE"
+		echo "document$i.draw LINE1"
+		echo "document$i.info Nombre de documents textes illustres sur les sites MediaSPIP ($item)"
+		i=$((i+1))
+	done
 	exit 0
 fi
 
-nb_media=`cat /usr/local/log/mediaspip_comptage.log |wc -l`
-echo "media.value ${nb_media}"
+exclure="*([0-9a-f]{32}\.[a-z0-9]{3}|\.ok|-[0-9]{1,3}\.[0-9a-z]{3}|\-encoded\.[0-9a-z]{3}|\-encoded\.[0-9a-z]{3})$"
 
-/usr/local/bin/mediaspip_compter_categorie_extension > /tmp/mediaspip_compter_categorie_extension.log
+IFS=":"
+set $DOSSIERS
+i=0
+for item
+do
+    find $item -mindepth 4 -maxdepth 4 -path "*/IMG/*" -type f | egrep -v "$exclure" > /tmp/mediaspip_comptage.log
+    nb_media=`cat /tmp/mediaspip_comptage.log |wc -l`
+        echo "media$i.value ${nb_media}"
+        cat /tmp/mediaspip_comptage.log | awk 'BEGIN {FS="." }{print $NF;}' | sort |uniq -c | tr -s ' ' |cut -d ' ' -f2- |sort -gr | awk '
+                BEGIN {FS=" "
+                        video=0
+                        audio=0
+                        photo=0
+                        document=0
+                }
+                video_regexp = "3gp|mov|avi|mp4|flv|mpg|ogv|webm|wmv";
+                $2 ~ video_regexp { video+=$1; }
+                audio_regexp = "oga|ogg|mid|mp3|wav";
+                $2 ~ audio_regexp { audio+=$1; }
+                photo_regexp = "jpg|png|gif|bmp";
+                $2 ~ photo_regexp { photo+=$1; }
+                document_regexp = "pdf|odt|odp|doc|xls";
+                $2 ~ document_regexp { document+=$1; }
+                
+                END {
+                        print "video", video;
+                        print "audio", audio;
+                        print "photo", photo;
+                        print "document", document;
+                }' > /tmp/mediaspip_compter_categorie_extension.log
 
-nb_video=`cat /tmp/mediaspip_compter_categorie_extension.log | grep video | cut -d ' ' -f2`
-echo "video.value ${nb_video}"
+        nb_video=`cat /tmp/mediaspip_compter_categorie_extension.log | grep video | cut -d ' ' -f2`
+        echo "video$i.value ${nb_video}"
+        nb_audio=`cat /tmp/mediaspip_compter_categorie_extension.log | grep audio | cut -d ' ' -f2`
+        echo "audio$i.value ${nb_audio}"
+        nb_photo=`cat /tmp/mediaspip_compter_categorie_extension.log | grep photo | cut -d ' ' -f2`
+        echo "photo$i.value ${nb_photo}"
+        nb_document=`cat /tmp/mediaspip_compter_categorie_extension.log | grep document | cut -d ' ' -f2`
+        echo "document$i.value ${nb_document}"
+        i=$((i+1))
 
-nb_audio=`cat /tmp/mediaspip_compter_categorie_extension.log | grep audio | cut -d ' ' -f2`
-echo "audio.value ${nb_audio}"
-
-nb_photo=`cat /tmp/mediaspip_compter_categorie_extension.log | grep photo | cut -d ' ' -f2`
-echo "photo.value ${nb_photo}"
-
-nb_document=`cat /tmp/mediaspip_compter_categorie_extension.log | grep document | cut -d ' ' -f2`
-echo "document.value ${nb_document}"
-
+done
