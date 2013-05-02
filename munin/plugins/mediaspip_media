@@ -99,14 +99,15 @@ do
                         audio=0
                         photo=0
                         document=0
+                        autre=0
                 }
-                video_regexp = "3gp|mov|avi|mp4|flv|mpg|ogv|webm|wmv";
+                video_regexp = "3gp|asf|avi|dv|f4p|flv|m2p|m2ts|m4v|mkv|mng|mov|mp4|mpg|mts|ogv|ogx|qt|ts|webm|wmv|y4m";
                 $2 ~ video_regexp { video+=$1; }
-                audio_regexp = "oga|ogg|mid|mp3|wav";
+                audio_regexp = "3ga|aac|ac3|aif|aiff|f4a|f4b|flac|m4a|m4b|m4p|m4r|mid|mka|mp3|mpc|oga|ogg|ra|ram|rm|spx|wav|wma";
                 $2 ~ audio_regexp { audio+=$1; }
-                photo_regexp = "jpg|png|gif|bmp";
+                photo_regexp = "jpg|png|gif|bmp|psd|ai|svg|tif|wmf";
                 $2 ~ photo_regexp { photo+=$1; }
-                document_regexp = "pdf|odt|odp|doc|xls";
+                document_regexp = "csv|doc|docm|eps|epub|gpx|html|kml|kmz|odt|odp|pdf|ps|tex|txt|xls";
                 $2 ~ document_regexp { document+=$1; }
                 
                 END {
