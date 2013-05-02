@@ -1,5 +1,0 @@
-#!/bin/bash
-
-liste=/usr/local/log/mediaspip_comptage.log
-
-cat $liste | /usr/local/bin/mediaspip_extension | sort |uniq -c | tr -s ' ' |cut -d ' ' -f2- |sort -gr | /usr/local/bin/mediaspip_categorie
