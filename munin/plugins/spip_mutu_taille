@@ -1,0 +1,51 @@
+#!/bin/bash
+#
+# spip_mutu_taille
+# Espace disque utilise par chaque instance SPIP
+#
+# Ce script est sensé être utilisé par Munin (http://munin-monitoring.org)
+# pour monitorer l'espace disque occupé par une instance sur une ferme de SPIP (http://www.spip.net)
+#
+# VERSION
+# v0.1 (2013-05-02)
+#
+# AUTHORS
+# © Association INFINI - Eric Talarmain (2011-xxxx)
+# Distribué sous licence GNU/GPLv2 (http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt)
+#
+# CONFIGURATION
+#
+#
+#%# family=contrib
+#%# capabilities=autoconf
+
+nb_sites=${nb_sites:-10}
+journal=${journal:-/usr/local/log/mediaspip_taille_instance.log}
+
+if [ "$1" == "autoconf" ];then
+	echo "yes"
+fi
+
+if [ "$1" == "config" ];then
+	cat <<EOF
+graph_category SPIP
+graph_title Taille des instances SPIP
+graph_vlabel Espace utilise
+EOF
+	for site in $(cat $journal | head -n $nb_sites | awk -F "\t" '{ print $2 }' );do
+		label_site=$( echo $site | sed "s/\./_/g" )
+	   cat <<EOF
+$label_site.label $site
+$label_site.type GAUGE
+$label_site.draw LINE1
+$label_site.info $site
+EOF
+	done
+fi
+
+if [ "$1" == "" ];then
+	cat $journal | head -n $nb_sites |awk -F "\t" 'BEGIN { OFS = "";}{ \
+		gsub(/\./, "_")
+		print $2, ".value ", $1 \
+	}'
+fi
