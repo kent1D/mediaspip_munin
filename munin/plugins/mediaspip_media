@@ -1,0 +1,121 @@
+#!/bin/sh
+#
+: <<=cut
+
+=head1 NAME
+
+mediaspip_media - Nombre de media dans mediaspip
+
+=head1 APPLICABLE SYSTEMS
+
+Tout système linux
+
+=head1 CONFIGURATION
+
+Scripts dépendants :
+mediaspip_categorie ( interpréteur awk ) :
+Il récupère la liste des extensions et incrémente le nombre de média dans une catégorie parmi video audio photo documents
+Ce script peut être incomplet, veuillez vérifier que les extensions des media fréquemment utilisés sont dans la liste
+
+mediaspip_compter ( interpréteur bash )
+script exécuté par le cron
+Planifier l'exécution de /usr/local/bin/mediaspip_compter dans le cron
+
+mediaspip_compter_categorie_extension ( interpréteur bash )
+Script executé par ce script munin
+Récupère la liste des media, il compte le nombre de media par catégorie selon l'extension repéré
+
+mediaspip_extension ( interpréteur awk )
+Il retient l'extension du fichier ( après le dernier ".", tar.gz serait vu comme gz )
+
+Copier ces fichiers dans /usr/local/bin
+
+
+
+=head2 EXAMPLE WARNING AND CRITICAL SETTINGS
+
+=head1 INTERPRETATION
+
+Nombre de media dans mediaspip
+
+=head1 VERSION
+
+  $Id: mediaspip_media.in 3213 2009-12-10 13:31:49Z janl $
+
+=head1 BUGS
+
+Bugs ?
+
+=head1 AUTHOR
+
+Association INFINI - Eric Talarmain
+
+=head1 LICENSE
+
+GPLv2
+
+=cut
+
+
+. $MUNIN_LIBDIR/plugins/plugin.sh
+
+if [ "$1" = "autoconf" ]; then
+	if [ -r /var/www/mediaspip/sites ]; then
+		echo yes
+	else
+		echo no
+	fi
+	exit 0
+fi
+
+if [ "$1" = "config" ]; then
+	echo 'graph_title Media dans MediaSPIP'
+	echo 'graph_vlabel nb'
+	echo 'graph_info Ce graphe montre des statistiques sur l utilisation de mediaspip.'
+	echo 'graph_category mediaspip'
+
+	echo 'media.label NbMedia'
+	echo 'media.type GAUGE'
+	echo 'media.draw LINE1'
+	echo 'media.info Nombre de media sur les sites MediaSPIP'
+
+	echo 'video.label NbVideo'
+	echo 'video.type GAUGE'
+	echo 'video.draw LINE1'
+	echo 'video.info Nombre de video sur les sites MediaSPIP'
+
+	echo 'audio.label NbAudio'
+	echo 'audio.type GAUGE'
+	echo 'audio.draw LINE1'
+	echo 'audio.info Nombre de documents audio sur les sites MediaSPIP'
+
+	echo 'photo.label NbPhoto'
+	echo 'photo.type GAUGE'
+	echo 'photo.draw LINE1'
+	echo 'photo.info Nombre d illustrations sur les sites MediaSPIP'
+
+	echo 'document.label NbDocuments'
+	echo 'document.type GAUGE'
+	echo 'document.draw LINE1'
+	echo 'document.info Nombre de documents textes illustres sur les sites MediaSPIP'
+
+	exit 0
+fi
+
+nb_media=`cat /usr/local/log/mediaspip_comptage.log |wc -l`
+echo "media.value ${nb_media}"
+
+/usr/local/bin/mediaspip_compter_categorie_extension > /tmp/mediaspip_compter_categorie_extension.log
+
+nb_video=`cat /tmp/mediaspip_compter_categorie_extension.log | grep video | cut -d ' ' -f2`
+echo "video.value ${nb_video}"
+
+nb_audio=`cat /tmp/mediaspip_compter_categorie_extension.log | grep audio | cut -d ' ' -f2`
+echo "audio.value ${nb_audio}"
+
+nb_photo=`cat /tmp/mediaspip_compter_categorie_extension.log | grep photo | cut -d ' ' -f2`
+echo "photo.value ${nb_photo}"
+
+nb_document=`cat /tmp/mediaspip_compter_categorie_extension.log | grep document | cut -d ' ' -f2`
+echo "document.value ${nb_document}"
+
