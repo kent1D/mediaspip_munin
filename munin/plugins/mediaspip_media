@@ -15,7 +15,12 @@
 # Distribué sous licence GNU/GPLv2 (http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt)
 #
 # CONFIGURATION
+# 
+# Les paramètres suivants sont disponibles
 #
+# [mediaspip_media]
+# dossier     - Le ou les dossiers sites/ de mutualisation à scanner, à séparer par ":" si vous voulez scanner
+# plusieurs mutualisation (/var/www/mediaspip/sites par défaut)
 #
 #%# family=contrib
 #%# capabilities=autoconf
@@ -95,51 +100,50 @@ set $DOSSIERS
 i=0
 for item
 do
-    find $item -mindepth 4 -maxdepth 4 -path "*/IMG/*" -type f | egrep -v "$exclure" > /tmp/mediaspip_comptage.log
-    nb_media=`cat /tmp/mediaspip_comptage.log |wc -l`
-        echo "media$i.value ${nb_media}"
-        cat /tmp/mediaspip_comptage.log | awk 'BEGIN {FS="." }{print $NF;}' | sort |uniq -c | tr -s ' ' |cut -d ' ' -f2- |sort -gr | awk '
-                BEGIN {FS=" "
-                        video=0
-                        audio=0
-                        photo=0
-                        document=0
-                        autre=0
-                }
-                video_regexp = "3gp|asf|avi|dv|f4p|flv|m2p|m2ts|m4v|mkv|mng|mov|mp4|mpg|mts|ogv|ogx|qt|ts|webm|wmv|y4m";
-                audio_regexp = "3ga|aac|ac3|aif|aiff|f4a|f4b|flac|m4a|m4b|m4p|m4r|mid|mka|mp3|mpc|oga|ogg|ra|ram|rm|spx|wav|wma";
-                photo_regexp = "jpg|png|gif|bmp|psd|ai|svg|tif|wmf";
-                document_regexp = "csv|doc|docm|eps|epub|gpx|html|kml|kmz|odt|odp|pdf|ps|tex|txt|xls";
+	find $item -mindepth 4 -maxdepth 4 -path "*/IMG/*" -type f | egrep -v "$exclure" > /tmp/mediaspip_comptage.log
+	nb_media=`cat /tmp/mediaspip_comptage.log |wc -l`
+		echo "media$i.value ${nb_media}"
+		cat /tmp/mediaspip_comptage.log | awk 'BEGIN {FS="." }{print $NF;}' | sort |uniq -c | tr -s ' ' |cut -d ' ' -f2- |sort -gr | awk '
+				BEGIN {FS=" "
+						video=0
+						audio=0
+						photo=0
+						document=0
+						autre=0
+				}
+				video_regexp = "3gp|asf|avi|dv|f4p|flv|m2p|m2ts|m4v|mkv|mng|mov|mp4|mpg|mts|ogv|ogx|qt|ts|webm|wmv|y4m";
+				audio_regexp = "3ga|aac|ac3|aif|aiff|f4a|f4b|flac|m4a|m4b|m4p|m4r|mid|mka|mp3|mpc|oga|ogg|ra|ram|rm|spx|wav|wma";
+				photo_regexp = "jpg|png|gif|bmp|psd|ai|svg|tif|wmf";
+				document_regexp = "csv|doc|docm|eps|epub|gpx|html|kml|kmz|odt|odp|pdf|ps|tex|txt|xls";
                 {
-	                if($2 ~ video_regexp)
-	                	video+=$1;
+					if($2 ~ video_regexp)
+						video+=$1;
 					else if($2 ~ audio_regexp)
-	                	audio+=$1;
+						audio+=$1;
 					else if($2 ~ photo_regexp)
-	                	photo+=$1;
+						photo+=$1;
 					else if($2 ~ document_regexp)
-	                	document+=$1;
-	            	else
-	            		autre+=$1;
-            	}
+						document+=$1;
+					else
+						autre+=$1;
+				}
                 END {
-                        print "video", video;
-                        print "audio", audio;
-                        print "photo", photo;
-                        print "document", document;
-                        print "autre", autre;
-                }' > /tmp/mediaspip_compter_categorie_extension.log
+						print "video", video;
+						print "audio", audio;
+						print "photo", photo;
+						print "document", document;
+						print "autre", autre;
+				}' > /tmp/mediaspip_compter_categorie_extension.log
 
-        nb_video=`cat /tmp/mediaspip_compter_categorie_extension.log | grep video | cut -d ' ' -f2`
-        echo "video$i.value ${nb_video}"
-        nb_audio=`cat /tmp/mediaspip_compter_categorie_extension.log | grep audio | cut -d ' ' -f2`
-        echo "audio$i.value ${nb_audio}"
-        nb_photo=`cat /tmp/mediaspip_compter_categorie_extension.log | grep photo | cut -d ' ' -f2`
-        echo "photo$i.value ${nb_photo}"
-        nb_document=`cat /tmp/mediaspip_compter_categorie_extension.log | grep document | cut -d ' ' -f2`
-        echo "document$i.value ${nb_document}"
-        nb_autre=`cat /tmp/mediaspip_compter_categorie_extension.log | grep autre | cut -d ' ' -f2`
-        echo "autre$i.value ${nb_autre}"
-        i=$((i+1))
-
+		nb_video=`cat /tmp/mediaspip_compter_categorie_extension.log | grep video | cut -d ' ' -f2`
+		echo "video$i.value ${nb_video}"
+		nb_audio=`cat /tmp/mediaspip_compter_categorie_extension.log | grep audio | cut -d ' ' -f2`
+		echo "audio$i.value ${nb_audio}"
+		nb_photo=`cat /tmp/mediaspip_compter_categorie_extension.log | grep photo | cut -d ' ' -f2`
+		echo "photo$i.value ${nb_photo}"
+		nb_document=`cat /tmp/mediaspip_compter_categorie_extension.log | grep document | cut -d ' ' -f2`
+		echo "document$i.value ${nb_document}"
+		nb_autre=`cat /tmp/mediaspip_compter_categorie_extension.log | grep autre | cut -d ' ' -f2`
+		echo "autre$i.value ${nb_autre}"
+		i=$((i+1))
 done
