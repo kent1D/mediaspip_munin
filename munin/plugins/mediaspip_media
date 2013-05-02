@@ -23,7 +23,7 @@
 # plusieurs mutualisation (/var/www/mediaspip/sites par défaut)
 #
 #%# family=contrib
-#%# capabilities=autoconf
+#%# capabilities=autoconf suggest
 
 . $MUNIN_LIBDIR/plugins/plugin.sh
 

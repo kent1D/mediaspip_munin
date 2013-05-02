@@ -1,0 +1,77 @@
+#!/bin/sh
+#
+# spip_mutu_sites
+# Nombre de sites mutualisés pour une Mutualisation de SPIP
+#
+# Ce script est sensé être utilisé par Munin (http://munin-monitoring.org)
+# pour monitorer le nombre de sites mutualisés sur une installation de SPIP (http://www.spip.net)
+# 
+# VERSION
+# v0.2 (2013-05-02)
+#
+# AUTHORS
+# © Association INFINI - Eric Talarmain (2011-xxxx)
+# © Association Arscenic - kent1 (kent1{at}arscenic.info 2013-xxxx)
+# Distribué sous licence GNU/GPLv2 (http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt)
+#
+# CONFIGURATION
+# 
+# Les paramètres suivants sont disponibles
+#
+# [spip_mutu_sites]
+# dossier     - Le ou les dossiers sites/ de mutualisation à scanner, à séparer par ":" si vous voulez scanner
+# plusieurs mutualisation (/var/www/mediaspip/sites par défaut)
+#
+#%# family=contrib
+#%# capabilities=autoconf suggest
+
+. $MUNIN_LIBDIR/plugins/plugin.sh
+
+DOSSIERS=${dossier:-/var/www/mediaspip/sites}
+
+#####
+# Autoconfiguration: 
+# - On vérifie que tous les dossiers fournis en configuration sont accessibles en lecture
+#####
+if [ "$1" = "autoconf" ]; then
+	IFS=":"
+	set $DOSSIERS
+	i=0
+	for item
+	do
+		if [ ! -r $item ]; then
+			echo "no ($item n est pas accessible)"
+			exit 0
+		fi
+	done
+	echo yes
+	exit 0
+fi
+
+if [ "$1" = "config" ]; then
+	echo 'graph_title Sites SPIP mutualisés'
+	echo 'graph_vlabel nb'
+	echo 'graph_info Nombre d instances de mutalisation de SPIP.'
+	echo 'graph_category SPIP'
+	
+	IFS=":"
+	set $DOSSIERS
+	i=0
+	for item
+	do
+		echo "sites$i.label Nombre de sites ($i)"
+		echo "sites$i.type GAUGE"
+		echo "sites$i.draw LINE1"
+		echo "sites$i.info Nombre de sites SPIP sur la mutualisation ($item)"
+	done
+	exit 0
+fi
+
+IFS=":"
+set $DOSSIERS
+i=0
+for item
+do
+	nb_sites=`find $item -mindepth 1 -maxdepth 1 -type d |grep -v "_deleted" |grep -v "_disable" | wc -l`
+	echo "sites$i.value ${nb_sites}"
+done
