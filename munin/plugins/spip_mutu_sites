@@ -72,6 +72,6 @@ set $DOSSIERS
 i=0
 for item
 do
-	nb_sites=`find $item -mindepth 1 -maxdepth 1 -type d |grep -v "_deleted" |grep -v "_disable" | wc -l`
+	nb_sites=`find $item -mindepth 1 -maxdepth 1 -type d |grep -v '\(_deleted\|_disabled\)' | wc -l`
 	echo "sites$i.value ${nb_sites}"
 done
