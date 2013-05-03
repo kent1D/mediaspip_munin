@@ -11,6 +11,6 @@
 # appelé toutes les 5 minutes par Munin directement
 #
 # Vous devez avoir déposé le script bin/spip_taille_instance.sh dans /usr/local/bin pour utiliser
-# cette tache cron telle quelle
+# cette tache cron telle quelle et le rendre exécutable avec chmod +x
 
-35 */1 * * * root bash /usr/local/bin/spip_taille_instance.sh
+35 */1 * * * root [ -x /usr/local/bin/spip_taille_instance.sh ] /usr/local/bin/spip_taille_instance.sh
