@@ -5,6 +5,7 @@
 #
 # Ce script est sensé être utilisé par Munin (http://munin-monitoring.org)
 # pour monitorer l'espace disque occupé par une instance sur une ferme de SPIP (http://www.spip.net)
+# Il nécessite que le script bin/spip_taille_instance.sh soit appelé régulièrement pas CRON
 #
 # VERSION
 # v0.1 (2013-05-02)

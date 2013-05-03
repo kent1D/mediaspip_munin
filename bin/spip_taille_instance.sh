@@ -1,5 +1,7 @@
 #!/bin/bash
-#
+# 
+# spip_taille_instance.sh
+# 
 # Script à executer en cron (tâche planifiée)
 # cf : https://technique.arscenic.org/commandes-linux-de-base/article/cron-gestion-des-taches-planifiees
 #
