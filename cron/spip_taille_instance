@@ -1,0 +1,13 @@
+# Exemple de fichier cron pour le scripts spip_taille_instance
+# Il doit être copié dans le répertoire /etc/cron.d par exemple
+#
+# Le script appelé calcule la taille des instances de SPIP installée dans une mutualisation
+#
+# On le lance toutes les heures à la minute 35
+# Le script appelé utilise la commande du ce qui peut utiliser beaucoup de ressources si
+# appelé toutes les 5 minutes par Munin directement
+#
+# Vous devez avoir déposé le script bin/spip_taille_instance.sh dans /usr/local/bin pour utiliser
+# cette tache cron telle quelle
+
+35 */1 * * * root bash /usr/local/bin/spip_taille_instance.sh
