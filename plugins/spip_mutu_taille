@@ -20,7 +20,9 @@
 #%# family=contrib
 #%# capabilities=autoconf
 
+# Combien de sites affiche t on au maximum dans les graphs
 nb_sites=${nb_sites:-10}
+# Où se trouvent les informations stockées depuis le CRON
 journal=${journal:-/usr/local/log/mediaspip_taille_instance.log}
 
 if [ "$1" == "autoconf" ];then
